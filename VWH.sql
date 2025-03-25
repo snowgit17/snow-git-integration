@@ -1,3 +1,8 @@
+use role accountadmin;
+use database aniket;
+use schema mart;
+
+
 CREATE or replace WAREHOUSE git_vwh
   WAREHOUSE_SIZE = 'XSMALL'
   AUTO_SUSPEND = 300
