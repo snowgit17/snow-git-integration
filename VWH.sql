@@ -1,4 +1,4 @@
-CREATE or replace WAREHOUSE my_warehouse
+CREATE or replace WAREHOUSE git_vwh
   WAREHOUSE_SIZE = 'XSMALL'
   AUTO_SUSPEND = 300
   AUTO_RESUME = TRUE
