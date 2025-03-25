@@ -1,0 +1,165 @@
+******** Execute the following command on the source account **********
+
+-- Assume the ORGADMIN role 
+
+use role orgadmin;
+
+
+--- View the list of the accounts in your organization
+--- Note the organization name and account name for each account for which you are enabling replication 
+
+show organization accounts;
+
+---- Enable replication by executing the statement for each source and target account in your organization 
+
+select system$global_account_set_parameter ('<Primary Account Locator/Organization_Name.ACCOUNT_NAME >", 'ENABLE_ACCOUNT_DATABASE_REPLICATION', 'true") ; 
+
+select system$global_account_set_parameter ('<Secondary Account Locator/Organization_Name.ACCOUNT_NAME>', 'ENABLE_ACCOUNT_DATABASE_REPLICATION','true');
+
+show replication accounts;
+
+-- Query the set of primary and secondary databases in your organization.
+-- In this example, the MYORG.ACCOUNT1 primary database is available to replicate. 
+
+show replication databases;
+
+
+--Setting up database in Source account AZ_WEST_PRIMARY
+
+Use role accountadmin; 
+
+use warehouse COMPUTE_WH;
+
+create database if not exists DATABASE_FOR_REPLICATION;
+
+create schema if not exists SOURCESCHEMA;
+
+use database DATABASE_FOR_REPLICATION;
+
+Use schema  SOURCESCHEMA;
+
+Create table if not exists EMP (Name Varchar (50)) ;
+
+Insert into "DATABASE_FOR_REPLICATION". "SOURCESCHEMA". "EMP" values ('Rajiv'), ('Tom'), ('Sam' );
+
+
+create or replace view V_emp as select * from "DATABASE_FOR_REPLICATION". "SOURCESCHEMA". "EMP"
+
+
+CREATE OR REPLACE FILE FORMAT "DATABASE_FOR_REPLICATION". "SOURCESCHEMA" . CSV
+COMPRESSION = 'AUTO' FIELD_DELIMITER = ' ,
+RECORD_DELIMITER = '\n' SKIP_HEADER = 0 FIELD_OPTIONALLY_ENCLOSED_BY = 'NONE'
+TRIM_SPACE = FALSE ERROR_ON_COLUMN_COUNT_MISMATCH = TRUE ESCAPE = 'NONE'
+ESCAPE_UNENCLOSED_FIELD = '\134' DATE_FORMAT = 'AUTO' TIMESTAMP_FORMAT = 'AUTO' NULL_IF = ('\\N);
+
+
+CREATE STAGE "DATABASE_FOR_REPLICATION". "SOURCESCHEMA".Internal_stage;
+
+use role accountadmin;
+
+show replication accounts;
+
+show replication databases;
+
+-- The commands below are executed from the source account
+-‹Organization_Name.ACCOUNT_NAME>
+
+alter database DATABASE_FOR_REPLICATION enable repligation to accounts ‹Primary_Organization_Name.ACCOUNT_NAME>; 
+
+alter database DATABASE_FOR_REPLICATION enable replication to accounts <SECONDARY_Organization_Name.ACCOUNT_NAME>;
+
+show replication databases;
+
+
+---- Ignore the edition check to replicate to lower edition from BC edition 
+
+alter database DATABASE_FOR_REPLICATION enable replication to accounts ROAZCFF .SECONDARY_STANDARD IGNORE EDITION CHECK;
+
+
+
+**** GO TO ANOTHER ACCOUNT ****
+
+---Execute from Each Target Account
+
+--- The commands below are executed from each target account
+
+Use role accountadmin;
+
+CREATE WAREHOUSE IF NOT EXISTS SECONDARY_WH WITH WAREHOUSE_SIZE ='XSMALL ------if not create VWH
+WAREHOUSE_TYPE = ' STANDARD' AUTO_SUSPEND = 300
+AUTO_RESUME = TRUE
+MIN_CLUSTER_COUNT = 1
+MAX_CLUSTER_COUNT = 1
+SCALING_POLICY = 'STANDARD' ;
+
+
+-- View replication enabled databases
+-- Note the primary column of the source database for the CREATE DATABASE statement below
+
+show replication databases;
+
+
+-- If the primary database has the DATA_RETENTION_TIME_IN_DAYS parameter set to a value other than the default value,
+
+Create datatase DATABASE_FOR _RPLICATION as replica of <Primary_Org_Name.Account_Name>.DATABASE_FOR_REPLICATION;
+
+
+-- Refresh a secondary database
+
+alter database DATABASE_FOR_REPLICATION refresh;
+
+
+
+
+
+*******.  FAIL OVER *******
+
+---Execute from Source Account (Primary)
+
+---Use roles
+
+Use role accountadmin;
+
+use warehouse COMPUTE_WH;
+
+use database DATABASE_FOR_REPLICATION;
+
+Use schema SOURCESCHEMA;
+
+
+---- View replication enabled accounts 
+
+show replication accounts;
+
+- Query the set of primary and secondary databases in your organization.
+
+show replication databases;
+
+-- The commands below are executed from the source account 
+
+alter database DAABASEFORKIPCALON enable failllover to accounts <Primary_orgname.account_name>;
+
+alter database DATABASE_FOR_REPLICATION enable failover to accounts <Secondary_orgname.account_name>
+
+
+NOW GOT OT SECONDARY ACCOUNT 
+
+
+use warenouse secondary_wn;
+
+ use database DATABASE_FOR_REPLICATION;
+
+--failover to secondary 
+
+alter database DATABASE_FOR_REPLICATION primary;
+
+\
+-- Query the set of primary and secondary databases in your orga 
+
+show replication databases;
+
+
+
+
+
+
