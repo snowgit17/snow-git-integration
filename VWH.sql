@@ -1,4 +1,4 @@
-CREATE or replace WAREHOUSE my_warehouse
+CREATE or replace WAREHOUSE my_warehouse112233
   WAREHOUSE_SIZE = 'XSMALL'
   AUTO_SUSPEND = 300
   AUTO_RESUME = TRUE
