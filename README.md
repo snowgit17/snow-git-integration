@@ -1,2 +1,3 @@
 # snow-git-integration
-ANIKET Ashokrao RAUT
+ANIKET Ashokrao RAUT 
+Vedant Aniket Raut
